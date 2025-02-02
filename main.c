@@ -151,9 +151,9 @@ void create_new_user();
 int login_user();
 void main_menu();
 void pre_game_menu();
+
 void load_users_fromfile();
- void save_users_tofile();
- //void display_scoreboard();
+void save_users_tofile();
 void game_settings();
 void manage_profile();
 void start_new_game();
@@ -162,7 +162,6 @@ void continue_previous_game();
 void set_difficulty();
 void set_charcter_color();
 int compare_scores(const void *a, const void *b);
-//void display_scoreboard();
 void navigate_scoreboard();
 void display_scoreboard(int current_page);
 
@@ -172,6 +171,8 @@ void load_game();
 void song_menu();
 void stop_song();
 void play_song(const char *song);
+
+void draw_from_file(const char *filename);
 //////////////////////////////////////////////////////////////////////////////////
 void update_message_window(const char *message);
 void update_clear_message_swindow();
@@ -231,7 +232,6 @@ int main(){
     keypad(stdscr,TRUE);
    start_color();
    init_color(9,1000,500,0);
-   //player's color
    init_pair(1,COLOR_GREEN,COLOR_BLACK);
    init_pair(2,COLOR_RED,COLOR_BLACK);
    init_pair(3,COLOR_WHITE,COLOR_BLACK);
@@ -246,7 +246,6 @@ int main(){
     load_users_fromfile();
     main_menu();
 
-        
     save_users_tofile();
     endwin();
     return 0;
@@ -266,7 +265,7 @@ int valid_email(char *email) {
     char *atsign = strchr(email, '@');
     if (atsign == NULL) return 0;
     char *dot = strchr(atsign, '.');
-    if (dot==NULL || dot == atsign + 1) return 0;
+    if (dot==NULL || dot == atsign + 1 || *(dot+1)=='\0') return 0;
     return 1;
 }
 void reset_password(char *username) {
@@ -280,7 +279,9 @@ void reset_password(char *username) {
                 new_password[j] = all_chars[rand() % (sizeof(all_chars) - 1)];
             }
             new_password[9] = '\0';
+            attron(COLOR_PAIR(5));
             printw("Your new password is: %s\n", new_password);
+            attroff(COLOR_PAIR(5));
             return;
 }
 void create_new_user() {
@@ -291,7 +292,9 @@ void create_new_user() {
     getstr(username);
     for (int i = 0; i < user_count; i++) {
         if (strcmp(users[i].username, username) == 0) {
+            attron(COLOR_PAIR(9));
             printw("Username already exists. Try again.\n");
+            attroff(COLOR_PAIR(9));
             return;
         }
     }
@@ -304,14 +307,18 @@ void create_new_user() {
     printw("Enter password (min 7 characters): ");
     getstr(password);
     if (!valid_password(password)) {
-        printw("Invalid password.Password should have at least 1 capital letter, one small letter and one digit. Try again.\n");
+        attron(COLOR_PAIR(9));
+        printw("Invalid password.Password should have at least 1 capital letter, 1 small letter and 1 digit. Try again.\n");
+        attroff(COLOR_PAIR(9));
         return;
 
     }
     printw("Enter email: ");
     getstr(email);
     if (!valid_email(email)) {
+        attron(COLOR_PAIR(9));
         printw("Invalid email format. Try again.\n");
+        attroff(COLOR_PAIR(9));
         return;
     }
     strcpy(users[user_count].username, username);
@@ -322,7 +329,9 @@ void create_new_user() {
     users[user_count].completed_game=0;
     users[user_count].first_game_time=0;
     user_count++;
+    attron(COLOR_PAIR(5));
     printw("User created successfully!\n");
+    attroff(COLOR_PAIR(5));
 }
 int login_user() {
     char username[50], password[50],correct_password[50];
@@ -345,22 +354,31 @@ int login_user() {
            break;
         }
     }
-    if(!found){printw("Invalid username. Try again.\n");return 0;}
+    if(!found){
+        attron(COLOR_PAIR(9));
+        printw("Invalid username. Try again.\n");
+        attroff(COLOR_PAIR(9));
+        return 0;}
 
     printw("Forgot password? (y/n): ");
     char answer=getch();
     printw("\n");
     if(answer=='y'){
-      printw("Your password is %s\n",correct_password);   
+        attron(COLOR_PAIR(5));
+      printw("Your password is %s\n",correct_password); 
+      attroff(COLOR_PAIR(5));  
     }
     printw("Enter password: ");
     getstr(password);
         if ( strcmp(correct_password, password) == 0) {
-            printw("Login successful! Welcome, %s.\n", username);
-            return 1;
+             attron(COLOR_PAIR(5));
+             printw("Login successful! Welcome, %s.\n", username);
+             attroff(COLOR_PAIR(5));  
+             return 1;
         }
-    
+    attron(COLOR_PAIR(9));  
     printw("Invalid password. Try again.\n");
+    attroff(COLOR_PAIR(9));  
     return 0;
 }
 void load_users_fromfile() {
@@ -395,12 +413,13 @@ void main_menu() {
     echo();
     while (1) {
         clear();
+        attron(COLOR_PAIR(5));
         printw("=== Main Menu ===\n");
         printw("1. Create New User\n");
         printw("2. Login\n");
-       // printw("3. Enter as a guest\n");
         printw("3. Exit\n");
         printw("Enter your choice: ");
+        attroff(COLOR_PAIR(5));
         scanw("%d", &choice);
        
         switch (choice) {
@@ -412,27 +431,24 @@ void main_menu() {
             case 2:
                 clear();
                 if (login_user()) {
+                    attron(COLOR_PAIR(5));  
                     printw("You can now access the game!\n");
+                    attroff(COLOR_PAIR(5));  
                     refresh();
                     usleep(2000000);
                     successful_entry=1;
                     clear();
                    pre_game_menu();
-                //   printw("\nPress any key to continue...");
-                //    getch();
                 }
                 break;
-            // case 3:
-            //     printw("Welcome guest!\n");
-            //     guest=1;
-            //     break;
             case 3:
-             
                 endwin();
                 return;
 
             default:
+                attron(COLOR_PAIR(9));
                 printw("Invalid Command.Try again.\n");
+                attroff(COLOR_PAIR(9));
 
         }
         // if(guest==1 || successful_entry==1){break;}
@@ -492,12 +508,16 @@ void start_new_game() {
     if(win==1){
         if(guest==0){ current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;}
        
-        mvprintw(0,0,"You won!\nScore:%d\n",score);}
+        mvprintw(0,0,"You won!\nScore:%d\n",score);
+        draw_from_file("trophy.txt");}
     else if((player->health<=0)){mvprintw(0,0,"You lost!\n");
+    draw_from_file("skull.txt");
     if(guest==0){ current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;}
        }
     else{mvprintw(0,0,"You quited the game!\nScore:%d\n",score);
+    draw_from_file("dragon.txt");
     if(guest==0) save_game();
+      
     }
    // getch();
     endwin();
@@ -611,20 +631,19 @@ if(guest==1)return;
         break;}
     }}
     clear();
-
+    time_t current_time = time(NULL);
+    double experience = (current_user->first_game_time != 0) ? difftime(current_time, current_user->first_game_time) : 0;
+     experience/=360; 
+    attron(COLOR_PAIR(6));  
     printw("=== Profile Management ===\n");
 
-    printw("1. User name: %s\n",current_user->username);
+    printw("\n1. User name: %s\n",current_user->username);
     printw("2. Password: %s\n",current_user->password);
-    //printw("3. Email: %s\n",current_user->email);
     printw("3. Completed games: %d\n",current_user->completed_game);
     printw("4. Total golds: %d\n",current_user->total_gold);
     printw("5. Total scores: %d\n",current_user->total_scores);
-    time_t current_time = time(NULL);  
-     double experience = (current_user->first_game_time != 0) ? difftime(current_time, current_user->first_game_time) : 0;
-    printw("6. Experience(seconds): %ld\n",experience);
-   getch();
-    // Placeholder for profile management logic
+    printw("6. Experience(hours): %.2f\n",experience);
+    attroff(COLOR_PAIR(6));  
 
 }
 void pre_game_menu() {
@@ -632,6 +651,7 @@ void pre_game_menu() {
     int choice;
     while (1) {
         clear();
+        attron(COLOR_PAIR(5));
         printw("=== Pre-Game Menu ===\n");
         printw("1. Start New Game\n");
         printw("2. Continue Previous Game\n");
@@ -640,6 +660,7 @@ void pre_game_menu() {
         printw("5. Profile\n");
        printw("6. Back to Main Menu\n");
         printw("Enter your choice: ");
+        attroff(COLOR_PAIR(5));
         scanw("%d", &choice);
 
         switch (choice) {
@@ -2817,8 +2838,8 @@ getch();
 void display_scoreboard(int current_page) {
     clear();
     printw("=== Scoreboard ===\n");
-    qsort(users, user_count, sizeof(User), compare_scores);  // Sort users based on scores
-    time_t current_time = time(NULL);  // Get current time
+    qsort(users, user_count, sizeof(User), compare_scores);  
+    time_t current_time = time(NULL); 
     printw("Rank | Username | Total Scores | Total Gold | Completed Games | Experience (seconds)\n");
     printw("------------------------------------------------------------------------------------\n");
     int start_index = current_page * PAGE_SIZE;  // Calculate the start index for the current page
@@ -2855,23 +2876,19 @@ void display_scoreboard(int current_page) {
     refresh();
 }
 
-
-
-// Function to handle navigation between pages
-
 void navigate_scoreboard() {
     int current_page = 0;
     int ch;
 
     while (1) {
         display_scoreboard(current_page);  // Display the current page
-        ch = getch();  // Get user input
+        ch = getch();  
         if (ch == 'n' && (current_page + 1) * PAGE_SIZE < user_count) {
             current_page++;  // Go to the next page
         } else if (ch == 'p' && current_page > 0) {
             current_page--;  // Go to the previous page
         } else if (ch == 'q') {
-            break;  // Exit the loop if 'q' is pressed
+            break;  
         }
     }
 }
@@ -2894,5 +2911,16 @@ int right_path(int x1, int y1, int x2, int y2) {
     }
    return 1;
 }
-
+void draw_from_file(const char *filename) {
+    FILE *file = fopen(filename, "r"); 
+    if (file == NULL) {
+        printw("Error opening file!\n");
+        return;
+    }
+    char ch;
+    while ((ch = fgetc(file)) != EOF) { 
+        printw("%c", ch);  
+    }
+    fclose(file); 
+}
 
