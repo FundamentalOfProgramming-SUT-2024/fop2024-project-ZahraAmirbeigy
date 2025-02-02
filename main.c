@@ -605,15 +605,27 @@ void game_settings() {
 
 
 void manage_profile() {
-
+if(guest==1)return;
+ User *current_user;
+    if(guest==0){
+      for (int i = 0; i < user_count; i++) {
+        if(strcmp(users[i].username,current_username)==0){current_user=&users[i];
+        break;}
+    }}
     clear();
 
     printw("=== Profile Management ===\n");
 
-    printw("1. View Profile\n");
-
-    printw("2. Edit Profile\n");
-
+    printw("1. User name: %s\n",current_user->username);
+    printw("2. Password: %s\n",current_user->password);
+    //printw("3. Email: %s\n",current_user->email);
+    printw("3. Completed games: %d\n",current_user->completed_game);
+    printw("4. Total golds: %d\n",current_user->total_gold);
+    printw("5. Total scores: %d\n",current_user->total_scores);
+    time_t current_time = time(NULL);  
+     double experience = (current_user->first_game_time != 0) ? difftime(current_time, current_user->first_game_time) : 0;
+    printw("6. Experience(seconds): %ld\n",experience);
+   getch();
     // Placeholder for profile management logic
 
 }
@@ -2759,9 +2771,7 @@ void play_song(const char *song) {
 
 
 void stop_song() {
-
     system("pkill mpg123");
-
 }
 
 
@@ -2806,147 +2816,44 @@ getch();
 }
 
 void display_scoreboard(int current_page) {
-
     clear();
-
-    
-
     printw("=== Scoreboard ===\n");
-
-
-
     qsort(users, user_count, sizeof(User), compare_scores);  // Sort users based on scores
-
     time_t current_time = time(NULL);  // Get current time
-
-
-
     printw("Rank | Username | Total Scores | Total Gold | Completed Games | Experience (seconds)\n");
-
     printw("------------------------------------------------------------------------------------\n");
-
-
-
     int start_index = current_page * PAGE_SIZE;  // Calculate the start index for the current page
-
     int end_index = (start_index + PAGE_SIZE < user_count) ? start_index + PAGE_SIZE : user_count;  // Ensure we don't go beyond the total number of users
-
-
 
     for (int i = start_index; i < end_index; i++) {
 
         double experience = (users[i].first_game_time != 0) ? difftime(current_time, users[i].first_game_time) : 0;
 
+        if (guest == 0 && strcmp(users[i].username, current_username) == 0) { attron(A_BOLD); }
 
-
-        // Apply special styling for top 3 users
-
-        if (guest == 0 && strcmp(users[i].username, current_username) == 0) {
-
-            attron(A_BOLD);
-
-        }
-
-        if (i == 0) {
-
-            attron(COLOR_PAIR(4));
-
-            attron(A_UNDERLINE);
-
-        }
-
-        if (i == 1) {
-
-            attron(COLOR_PAIR(5));
-
-            attron(A_UNDERLINE);
-
-        }
-
-        if (i == 2) {
-
-            attron(COLOR_PAIR(9));
-
-            attron(A_UNDERLINE);
-
-        }
-
-
-
+        if (i == 0) { attron(COLOR_PAIR(4)); attron(A_UNDERLINE);}
+        if (i == 1) {attron(COLOR_PAIR(5));attron(A_UNDERLINE); }
+        if (i == 2) {attron(COLOR_PAIR(9));attron(A_UNDERLINE);}
         printw("%d    | %-8s | %-12d | %-10d | %-15d | %-20.0f", 
-
                 i + 1, 
-
                 users[i].username, 
-
                 users[i].total_scores, 
-
                 users[i].total_gold, 
-
                 users[i].completed_game, 
+                experience);
 
-                experience); 
-
-
-
-        if (i == 0) { 
-
-            printw("CHAMPION  "); 
-
-            printw("\U0001F947");
-
-            attroff(COLOR_PAIR(4));
-
-            attroff(A_UNDERLINE);
-
-        }
-
-        if (i == 1) { 
-
-            printw("RUNNER-UP "); 
-
-            printw("\U0001F948");
-
-            attroff(COLOR_PAIR(5)); 
-
-            attroff(A_UNDERLINE);
-
-        }
-
-        if (i == 2) { 
-
-            printw("STRIVER   "); 
-
-            printw("\U0001F949");
-
-            attroff(COLOR_PAIR(9)); 
-
-            attroff(A_UNDERLINE);
-
-        }
-
+        if (i == 0) { printw("CHAMPION  "); printw("\U0001F947");attroff(COLOR_PAIR(4));attroff(A_UNDERLINE); }
+        if (i == 1) { printw("RUNNER-UP "); printw("\U0001F948");attroff(COLOR_PAIR(5));  attroff(A_UNDERLINE); }
+        if (i == 2) {  printw("STRIVER   "); printw("\U0001F949");attroff(COLOR_PAIR(9)); attroff(A_UNDERLINE);}
         printw("\n");
-
-
-
         if (guest == 0 && strcmp(users[i].username, current_username) == 0) {
-
             attroff(A_BOLD);
-
         }
-
     }
-
-
-
     // Display page navigation instructions
-
     printw("\nPage %d of %d", current_page + 1, (user_count + PAGE_SIZE - 1) / PAGE_SIZE);
-
     printw("\nUse 'n' for next page, 'p' for previous page, 'q' to quit: ");
-
     refresh();
-
 }
 
 
@@ -2954,37 +2861,20 @@ void display_scoreboard(int current_page) {
 // Function to handle navigation between pages
 
 void navigate_scoreboard() {
-
     int current_page = 0;
-
     int ch;
 
-
-
     while (1) {
-
         display_scoreboard(current_page);  // Display the current page
-
         ch = getch();  // Get user input
-
-
-
         if (ch == 'n' && (current_page + 1) * PAGE_SIZE < user_count) {
-
             current_page++;  // Go to the next page
-
         } else if (ch == 'p' && current_page > 0) {
-
             current_page--;  // Go to the previous page
-
         } else if (ch == 'q') {
-
             break;  // Exit the loop if 'q' is pressed
-
         }
-
     }
-
 }
 
 
