@@ -194,6 +194,7 @@ int get_current_room_id(int x, int y);
 void reveal_room(int currentx, int currenty);
 Player * playersetup();
 void update_visibility_on_move(int oldx,int oldy,int currentx,int currenty);
+int right_path(int x1, int y1, int x2, int y2);
 void check_valid_move (Player * player,int newx,int newy);
 void check_traps (Player * player);
 void print_map();
@@ -244,9 +245,6 @@ int main(){
     srand(time(NULL));
     load_users_fromfile();
     main_menu();
-   
-
-
 
         
     save_users_tofile();
@@ -1240,9 +1238,9 @@ void update_visibility_on_move(int oldx,int oldy,int currentx,int currenty) {
                 // Only update tiles that are not already visible
                 if (visibility[level][ny][nx] == 0 &&( map[level][ny][nx] != '#' && map[level][ny][nx] != ' ')) {
                    // visibility[level][ny][nx] = 1;
-                    attron(COLOR_PAIR(2));
+                    if(map[level][ny][nx]=='%'){attron(COLOR_PAIR(4));}else{attron(COLOR_PAIR(2));}
                     mvprintw(ny, nx, "%c", map[level][ny][nx]);  // Print the newly visible tile
-                    attroff(COLOR_PAIR(2));
+                    if(map[level][ny][nx]=='%'){attroff(COLOR_PAIR(4));}else{attroff(COLOR_PAIR(2));}
                 }
             }
         }
@@ -1274,7 +1272,6 @@ void update_visibility_on_move(int oldx,int oldy,int currentx,int currenty) {
 if((map[level][y][x]=='#' || map[level][y][x]=='+'|| map[level][y][x]=='?')){
     if(map[level][y][x]=='#' )update_monster_range();
 for (int dy = -3; dy <= 3; dy++) {
-
         for (int dx = -3; dx <= 3; dx++) {
             int nx = x + dx;
             int ny = y + dy;
@@ -1283,19 +1280,16 @@ for (int dy = -3; dy <= 3; dy++) {
                 // Only update tiles that are not already visible
 
                 if (visibility[level][ny][nx] == 0 &&( map[level][ny][nx] == '#'||map[level][ny][nx] == '+')) {
+                    if(right_path(nx,ny,x,y) || right_path(x,y,nx,ny)){
+                                        visibility[level][ny][nx] = 1;
 
-                    visibility[level][ny][nx] = 1;
+                                        mvprintw(ny, nx, "%c", map[level][ny][nx]); } // Print the newly visible tile
 
-                    mvprintw(ny, nx, "%c", map[level][ny][nx]);  // Print the newly visible tile
-
+                                    }
                 }
-
             }
-
         }
-
     }
-}
 
     // If the player enters a door, reveal the whole room
     if (map[level][y][x] == '+'||map[level][y][x] == '?') {
@@ -1838,6 +1832,7 @@ void handle_input(int input, Player *player) {
     return;
     }
     else if(input == ' '){
+        move_monsters(player);
      attack_monster(player);
      adjust_color();
       attron(COLOR_PAIR(1));
@@ -1943,7 +1938,7 @@ void handle_input(int input, Player *player) {
         }
     } else {
         // Regular single movement
-        move_monsters(player);
+       if(input!='m' && input!='i'&& input!='e'&& input!='z')move_monsters(player);
          if(input!='m')check_valid_move (player,newx,newy);
          //move_monsters(player);
         if (is_in_enchanted_room(player)) {
@@ -2516,11 +2511,13 @@ for (int dy = -1; dy <= 1; dy++) {
                           update_message_window("You hit a monster!");                   
                               if (r->monsters[j].health<= 0) { 
                               update_message_window("You killed a monster!");
+                              player->gold+=r->monsters[j].damage;
                               r->monster_count--;
                              adjust_color();
                              attron(COLOR_PAIR(1));
                                mvprintw(player->positions.y,player->positions.x,"@");    
                              attroff(COLOR_PAIR(1)); 
+                             update_status_window(player);
                     }
                 }
             }
@@ -2575,12 +2572,14 @@ int ch = getch();  // Get direction input
                      r->monsters[j].health -= player->active_weapon.damage;
                     update_message_window("You hit a monster!");
                     if (r->monsters[j].health<= 0) { 
+                             player->gold+=r->monsters[j].damage;
                              r->monster_count--;
                               update_message_window("You killed a monster!");
                              adjust_color();
                              attron(COLOR_PAIR(1));
                                mvprintw(player->positions.y,player->positions.x,"@");    
                              attroff(COLOR_PAIR(1)); 
+                             update_status_window(player);
                     }
                     return;
                 }
@@ -2876,6 +2875,24 @@ void navigate_scoreboard() {
         }
     }
 }
-
+int right_path(int x1, int y1, int x2, int y2) {
+    int x = x1, y = y1;
+    // Horizontal and vertical distances
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+    // Move horizontally first
+    while (dx != 0) {
+        x += (dx > 0) ? 1 : -1;
+        dx += (dx > 0) ? -1 : 1;
+        if (map[level][y][x] != '#') {return 0; }
+    }
+    // Then move vertically
+    while (dy != 0) {
+        y += (dy > 0) ? 1 : -1;
+        dy += (dy > 0) ? -1 : 1;
+         if (map[level][y][x] != '#') {return 0; }
+    }
+   return 1;
+}
 
 
