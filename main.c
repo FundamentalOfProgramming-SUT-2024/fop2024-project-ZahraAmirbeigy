@@ -487,10 +487,7 @@ void start_new_game() {
      generate_monsters();
        level=0;
      player=playersetup();
-     adjust_color();
-     attron(COLOR_PAIR(1));
-      mvprintw(player->positions.y,player->positions.x,"@");    
-     attroff(COLOR_PAIR(1));
+     update_map();
      if (song_choice == 0) {
         stop_song();
     } else {
@@ -513,13 +510,17 @@ void start_new_game() {
         if(guest==0){ current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;}
        
         mvprintw(0,0,"You won!\nGold:%d\nScore:%d\n",player->gold,score);
-        draw_from_file("trophy.txt");}
+        attron(COLOR_PAIR(4));
+        draw_from_file("trophy.txt");
+        attroff(COLOR_PAIR(4));}
     else if((player->health<=0)){mvprintw(0,0,"You lost!\n");
     draw_from_file("skull.txt");
     if(guest==0){ current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;}
        }
     else{mvprintw(0,0,"You quited the game!\nGold:%d\nScore:%d\n",player->gold,score);
+    attron(COLOR_PAIR(9));
     draw_from_file("dragon.txt");
+    attroff(COLOR_PAIR(9));
     if(guest==0) save_game();
       
     }
@@ -543,10 +544,7 @@ void continue_previous_game() {
       max_y-=3;max_x-=2;
       set_up_screen_message();
       update_status_window(player);
-       adjust_color();
-     attron(COLOR_PAIR(1));
-      mvprintw(player->positions.y,player->positions.x,"@");    
-     attroff(COLOR_PAIR(1));
+       update_map();
      if (song_choice == 0) {
         stop_song();
     } else {
@@ -569,13 +567,17 @@ void continue_previous_game() {
         current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;
        
         mvprintw(0,0,"You won!\nGold:%d\nScore:%d\n",player->gold,score);
-        draw_from_file("trophy.txt");}
+       attron(COLOR_PAIR(4));
+        draw_from_file("trophy.txt");
+        attroff(COLOR_PAIR(4));}
     else if((player->health<=0)){mvprintw(0,0,"You lost\n!");
     draw_from_file("skull.txt");
      current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;
        }
     else{mvprintw(0,0,"You quited the game!\nGold:%d\nScore:%d\n",player->gold,score);
+    attron(COLOR_PAIR(9));
     draw_from_file("dragon.txt");
+    attroff(COLOR_PAIR(9));
     save_game();
     }
    // getch();
@@ -2494,7 +2496,7 @@ void change_food(){
 time_t current_time = time(NULL);
     // Check if 5 seconds have passed
    
-    if (difftime(current_time, last_update_time2) >= 90) {
+    if (difftime(current_time, last_update_time2) >= 120) {
         last_update_time2 = current_time;  // Update the last time the hunger check occurred
         
         for(int i=0;i<24;i++){
