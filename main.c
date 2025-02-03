@@ -17,7 +17,7 @@
 #define MAX_HEIGHT 14
 #define MAX_HEALTH 100
 
-// User structure
+
 #define DATA_FILE "users_data.txt"
 typedef struct {
     char username[50];
@@ -79,7 +79,7 @@ typedef struct {
      int trap_count;
      gold golds[10];
      int gold_count;
-     Weapon weapons[10]; // Up to 5 weapons per room
+     Weapon weapons[10]; 
      int weapon_count;
      food foods[10];
      int food_count;
@@ -112,7 +112,6 @@ Weapon active_weapon;
  int active_spell;
  int active_spell_timer;
 }Player;
-// Array to store users
 
 User users[MAX_USERS];
 char current_username[50];
@@ -136,7 +135,7 @@ WINDOW *status_window;
 time_t last_update_time;
 
 int song_choice = 1;
-const char *songs[3] = {  // Only 3 valid songs
+const char *songs[3] = {  
     "song1.mp3",
     "song2.mp3",
     "song3.mp3"
@@ -581,18 +580,19 @@ void continue_previous_game() {
 }
 
 
-
 void game_settings() {
    int choice;
    while (1) {
     echo();
     clear();
+    attron(COLOR_PAIR(5));
     printw("=== Game Settings ===\n");
     printw("1. Set Difficulty Level\n");
     printw("2. Change Character Color\n");
     printw("3. Select Background Music\n");
      printw("4.Go back\n");
     printw("Enter your choice: ");
+   attroff(COLOR_PAIR(5));
    scanw("%d", &choice);
    switch (choice) {
             case 1:
@@ -622,8 +622,6 @@ void game_settings() {
         
     }
    }
-    
-
 
 void manage_profile() {
 if(guest==1)return;
@@ -699,13 +697,9 @@ void pre_game_menu() {
 
 }
 void update_message_window(const char *message) {
-    // Clear the message window
     wclear(message_window);
-    // Redraw the border of the message window
     box(message_window, 0, 0);
-    // Print the new message inside the window
     mvwprintw(message_window, 1, 1, "%s", message);
-    // Refresh the message window to show the updates
     wrefresh(message_window);
 }
 void update_clear_message_swindow() {
@@ -836,7 +830,7 @@ void place_special_items(){
     //}
     }
    for(int j=0;j<24 ;j++){
-   if(j%6!=5){
+   
     int num_gold = rand() % 2;
     if(j==20)num_gold = 1+rand() % 2;
     for (int i = 0; i < num_gold; i++) {
@@ -849,7 +843,7 @@ void place_special_items(){
              map[j/6][new_gold.position.y][new_gold.position.x]='$';
              rooms[j].golds[rooms[j].gold_count++] = new_gold;
     } 
-    
+    if(j%6!=5){
     rooms[j].food_count=(rooms[j].width*rooms[j].height<64)?rand()%2:1+rand()%2;
     for(int i=0;i<rooms[j].food_count;i++){
     food newfood;
@@ -1267,9 +1261,9 @@ void update_visibility_on_move(int oldx,int oldy,int currentx,int currenty) {
                 // Only update tiles that are not already visible
                 if (visibility[level][ny][nx] == 0 &&( map[level][ny][nx] != '#' && map[level][ny][nx] != ' ')) {
                    // visibility[level][ny][nx] = 1;
-                    if(map[level][ny][nx]=='%'){attron(COLOR_PAIR(4));}else{attron(COLOR_PAIR(2));}
+                    if(map[level][ny][nx]=='%'){attron(COLOR_PAIR(4));}else if(map[level][ny][nx]=='$'){attron(COLOR_PAIR(7));}else{attron(COLOR_PAIR(2));}
                     mvprintw(ny, nx, "%c", map[level][ny][nx]);  // Print the newly visible tile
-                    if(map[level][ny][nx]=='%'){attroff(COLOR_PAIR(4));}else{attroff(COLOR_PAIR(2));}
+                    if(map[level][ny][nx]=='%'){attroff(COLOR_PAIR(4));}else if(map[level][ny][nx]=='$'){attroff(COLOR_PAIR(7));}else{attroff(COLOR_PAIR(2));}
                 }
             }
         }
@@ -1412,24 +1406,9 @@ void check_traps_placement(int x,int y) {
 void check_valid_move (Player * player,int newx,int newy){
 
 char past_character=map[level][player->positions.y][player->positions.x];
-// switch (character)
-// {
-// case '.':
-//    playermove(y,x,);
-//     break;
-//  case '#':
-   
-//     break;
-//  case '>':
-   
-//  break; 
-// default:
-//     break;
-// }
 
 char character=map[level][newy][newx];
-//character=map[level][newy][newx];
- 
+
 if(monster_exist( newx, newy)){
     adjust_color();
  attron(COLOR_PAIR(1));
@@ -1455,20 +1434,7 @@ else if((!monster_exist( newx, newy))&&(character=='.' ||character=='#' ||charac
   attroff(COLOR_PAIR(1));
   if(character=='.'||character=='^') check_traps(player);
 }
-// else if(character=='%' ||character=='$'){
-//  mvprintw(player->positions.y,player->positions.x,"%c",past_character);
-//    process_item( newx,newy);
-//     if (visibility[level][player->positions.y][player->positions.x] == 0) {
-//         visibility[level][player->positions.y][player->positions.x] = 1;
-//         mvprintw(player->positions.y, player->positions.x, "."); 
-//     }
-//      adjust_color();
-//    player->positions.y=newy;
-//    player->positions.x=newx;
-//    attron(COLOR_PAIR(1));
-//    mvprintw(player->positions.y,player->positions.x,"@");    
-//   attroff(COLOR_PAIR(1));
-// }
+
 else if(map[level][newy][newx]=='|'|| map[level][newy][newx]=='_'){
 check_hidden_doors(newx,newy);
 }
@@ -1477,29 +1443,6 @@ else if(character=='E'){
         // sprintf(message, "Collect all golds and kill the monsters! %d gold and %d monster left.",rooms[20].gold_count,rooms[20].monster_count);
         // update_message_window(message);
    if((rooms[20].monster_count<=0) && (rooms[20].gold_count<=0)){ player->gold+=200;win=1;}}
-
-  // Check if the character is a weapon
-// int room_id = get_current_room_id(player->positions.x,player->positions.y);
-// Room room = rooms[(level *6) + room_id ];
-//   // Check if the player's position matches a weapon's position
-// for (int j = 0; j < room.weapon_count; j++) {
-
-//  Weapon weapon = room.weapons[j];
-//  if ((weapon.position.x == player->positions.x ||weapon.position.x+1 == player->positions.x)&& weapon.position.y == player->positions.y) {
-
-//     // Add the weapon to the player's inventory
-//     player->owned_weapons[player->weapons_count++] = weapon;
-//     // mvprintw(1, 1, "Collected %s!", weapon->name);
-//     // Remove the weapon from the map
-//     map[level][weapon.position.y][weapon.position.x] = '.';
-//     map[level][weapon.position.y][weapon.position.x+1] = '.';
-//     // Remove the weapon from the room's weapons list
-//     for (int k = j; k < room.weapon_count - 1; k++) {
-//       room.weapons[k] = room.weapons[k + 1];}
-//      room.weapon_count--;
-//      break;
-   // }
- //  }
  
 }
 void process_food(int x, int y) {
@@ -1740,7 +1683,6 @@ void print_whole_map(){
                      mvprintw(y, x, "%c", tile);
                      attroff(COLOR_PAIR(r.color));
                 }
-            
         }
     }
     if(r.monster_count>0  && r.monsters[0].health>0){
@@ -1759,89 +1701,12 @@ int is_in_enchanted_room(Player *player) {
     if (room_id != -1) {
         Room r = rooms[(level * 6) + room_id];
         if (strcmp(r.theme, "enchant") == 0) {
-            return 1; // Player is in a dangerous room
+            return 1; 
         }
     }
-    return 0; // Player is not in a dangerous room
+    return 0; 
 }
-// void handle_input(int input,Player *player){
-//     int newx=player->positions.x;
-//     int newy=player->positions.y;
-//      int fast_move = 0;
-//      //wclear(message_window);
-//     //box(message_window, 0, 0);
-//     //wrefresh(message_window);
-//     //update_clear_message_swindow();
-//      if (input == 'f') {
-  //      fast_move = 1;  // Enable fast movement
-   //     input = getch();  // Read the next input for direction
-  //  }
-//     switch(input){
-        
-//         case KEY_RIGHT:
-//         if(map[level][newy][newx]=='<' && level<3){level++;
 
-//          print_map();
-//          adjust_color();
-//          update_message_window("you have ascended to the next floor!");
-//          update_status_window(player);
-//          attron(COLOR_PAIR(1)); 
-//          mvprintw(player->positions.y,player->positions.x,"@");  
-//          attroff(COLOR_PAIR(1)); }
-//         break;
-
-//          case KEY_LEFT:
-//          if(map[level][newy][newx]=='<' && level>0){level--;
-//           print_map();
-//           adjust_color();
-//           update_message_window("you have returned to the previous floor!");
-//           update_status_window(player);
-//          attron(COLOR_PAIR(1));
-//           mvprintw(player->positions.y,player->positions.x,"@");    
-//           attroff(COLOR_PAIR(1)); }
-//         break;
-//         //left
-//      case 'h': newx--; break;
-//       //up
-//      case 'j': newy--; break;
-//      //down
-//      case 'k': newy++; break;
-//      //right
-//      case 'l': newx++; break;
-//      //up_left
-//      case 'y': newx--; newy--; break;
-//      //up_right
-//      case 'u': newx++; newy--; break;
-//      //down_left
-//      case 'b': newx--; newy++; break;
-//      //down_right
-//      case 'n': newx++; newy++; break;
-//      //view whole map
-
-//      case 'm': 
-//      if(viewing_whole_map==0){
-//         viewing_whole_map=1;print_whole_map();
-//          attron(COLOR_PAIR(1));
-//           mvprintw(player->positions.y,player->positions.x,"@");    
-//           attroff(COLOR_PAIR(1));
-//          break;}
-//      if(viewing_whole_map==1){
-//         viewing_whole_map=0;print_map();
-//           adjust_color();
-//           attron(COLOR_PAIR(1));
-//           mvprintw(player->positions.y,player->positions.x,"@");    
-//           attroff(COLOR_PAIR(1));
-//            break;}
-      
-//       default: break;
-//     }
-// if(input!='m')check_valid_move (player,newx,newy);
-// if(is_in_enchanted_room(player)){player->health-=1;
-// update_status_window(player);
-// //update_message_window("your health is deacreasing!");
-// }
-// refresh();
-// }
 void handle_input(int input, Player *player) {
     int newx = player->positions.x;
     int newy = player->positions.y;
@@ -1980,27 +1845,6 @@ void handle_input(int input, Player *player) {
 }
 
 
-// void save_visibility_state() {
-
-//     FILE *file = fopen("visibility_state.txt", "wb");
-
-//     fwrite(visibility, sizeof(int), MAX_X * MAX_Y * 4, file);  // Adjust size as needed
-
-//     fclose(file);
-
-// }
-
-
-
-// void load_visibility_state() {
-
-//     FILE *file = fopen("visibility_state.txt", "rb");
-
-//     fread(visibility, sizeof(int), MAX_X * MAX_Y * 4, file);  // Adjust size as needed
-
-//     fclose(file);
-
-// }
 void set_up_screen_message(){
  message_window = newwin(3,max_x, 0, 0); 
  status_window = newwin(1, max_x, max_y, 0);
@@ -2010,7 +1854,6 @@ void set_up_screen_message(){
     mvwprintw(message_window, 1, 1, "Welcome to the game!"); 
     wrefresh(message_window);
 
-   // mvwprintw(status_window, max_y, 1, "Health: 1000  Gold: 0");  // Initial display
     wrefresh(status_window);
 }
 void update_status_window(Player *player) {
@@ -2036,15 +1879,15 @@ void display_food_menu(Player *player) {
     int bar_length = player->hunger / 10; // Scale hunger (max 100) to a 10-unit bar
     for (int i = 0; i < 10; i++) {
         if (i < bar_length) {
-            addch('|'); // Filled section of the bar
+            addch('|'); 
         } else {
-            addch(' '); // Empty section of the bar
+            addch(' '); 
         }
     }
     addch(']');
     mvprintw(player->food_count + 4, 0, "Press 1-5 to consume food, or 'q' to return.");
     refresh();
-    // Wait for player input to consume foo
+    
     int ch;
     while ((ch = getch()) != 'q') {
         if (ch >= '1' && ch <= '5') {
@@ -2114,145 +1957,14 @@ void display_spell_menu(Player *player) {
         display_spell_menu(player); break;
     }else{break;} 
      }
-    // else {
 
-    //     update_message_window("Invalid choice or no spells available!");
-
-    // }
-    // Wait for player input to consume foo
-    
     attroff(COLOR_PAIR(5));
     print_map();
      adjust_color();
      update_message_window("You returned to main map!");
       update_status_window(player);
 }
-// void display_spell_menu(Player *player) {
-//     clear();
-//     attron(COLOR_PAIR(5));
-//     mvprintw(0, 0, "Spell Menu:");
 
-//     mvprintw( 2, 1, "1. Speed: %d", player->speed_spells);
-
-//     mvprintw( 3, 1, "2. Health: %d", player->health_spells);
-
-//     mvprintw(4, 1, "3. Damage: %d", player->damage_spells);
-
-//     mvprintw( 6, 1, "Press number to use a spell");
-//     refresh();
-//      int ch = getch();
-//      while (ch != 'q'){
-//     if (ch == '1' && player->speed_spells > 0) {
-//         player->speed_spells--;
-//         player->active_spell=1;
-//         player->active_spell_timer=10;
-//        // update_message_window("Speed spell qctivated!");
-//         display_spell_menu(player);break;
-//        // update_message_window("Speed spell used!");
-//     } else if (ch == '2' && player->health_spells > 0) {
-//        // player->health += 50; // Example effect
-//         player->health_spells--;
-//          player->active_spell=3;
-//         player->active_spell_timer=10;
-//        // update_message_window("Health spell activated!");
-//         display_spell_menu(player);break;
-//        // update_message_window("Health spell used!");
-//     } else if (ch == '3' && player->damage_spells > 0) {
-//        // update_message_window("Damage spell used!");
-//         player->damage_spells--;
-//         player->active_weapon.damage*=2;
-//          player->active_spell=2;
-//         player->active_spell_timer=10;
-//         //update_message_window("Damage spell activated!");
-//         display_spell_menu(player); break;
-//     } 
-//      }
-//     // else {
-
-//     //     update_message_window("Invalid choice or no spells available!");
-
-//     // }
-//     // Wait for player input to consume foo
-    
-//     attroff(COLOR_PAIR(5));
-//     print_map();
-//      adjust_color();
-//      update_message_window("You returned to main map!");
-//       update_status_window(player);
-// }
-// void display_weapon_menu(Player *player) {
-//     clear();
-//     attron(COLOR_PAIR(5)); // Use color for the menu
-//     mvprintw(0, 0, "Weapon Menu:");
-//     // Display current equipped weapon
-//     mvprintw(1, 0, "Current Weapon: %s (Damage: %d)", player->active_weapon.type, player->active_weapon.damage);
-//     mvprintw(3, 0, "Available Weapons:");
-//     int menu_line = 5;
-//         mvprintw(menu_line++, 2, "far_range weapons:");
-//         mvprintw(menu_line++, 2, "d) Dagger (Count: %d, Damage: 12)", player->dagger_count);
-//         mvprintw(menu_line++, 2, "a) Arrow (Count: %d, Damage: 5)", player->arrow_count);
-//         mvprintw(menu_line++, 2, "m) Magic Wound (Count: %d, Damage: 15)", player->magic_wound_count);
-//         menu_line++;
-//         mvprintw(menu_line++, 2, "close_range weapons:");
-//         mvprintw(menu_line++, 2, "s) Sword (Count: 1, Damage: 10)");
-//         mvprintw(menu_line++, 2, "c) Mace (Count: %d, Damage: 5)", player->Mace_count);
-//     mvprintw(menu_line + 1, 0, "Press the corresponding key to equip a weapon, or 'q' to return.");
-//     refresh();
-//     // Handle user input]
-//     int has_weapon=0;
-//     int error=0;
-//     int ch = getch();
-//      while (ch != 'q'){
-//         if(ch=='w'){
-//              strcpy(player->active_weapon.type, "none");
-//             player->active_weapon.damage = 0;
-//             display_weapon_menu(player); break;
-//         }
-//         if (ch == 'd' && player->dagger_count > 0 && strcmp(player->active_weapon.type, "none")==0) {
-//             strcpy(player->active_weapon.type, "dagger");
-//             player->active_weapon.damage = 12;
-//             display_weapon_menu(player);
-//             break;
-//         } else if (ch == 'a' && player->arrow_count > 0 && strcmp(player->active_weapon.type, "none")==0) {
-//             strcpy(player->active_weapon.type, "arrow");
-//             player->active_weapon.damage = 5;
-//             display_weapon_menu(player);
-//             break;
-//         } else if (ch == 's' && player->sword_count > 0 && strcmp(player->active_weapon.type, "none")==0) {
-//             strcpy(player->active_weapon.type, "sword");
-//             player->active_weapon.damage = 10;
-//             display_weapon_menu(player);
-//             break;
-//         } else if (ch == 'm' && player->magic_wound_count > 0 && strcmp(player->active_weapon.type, "none")==0) {
-//             strcpy(player->active_weapon.type, "magic_wound");
-//             player->active_weapon.damage = 15;
-//             display_weapon_menu(player);
-//             break;
-//         } else if (ch == 'c' && player->Mace_count > 0 && strcmp(player->active_weapon.type, "none")==0) {
-//             strcpy(player->active_weapon.type, "mace");
-//             player->active_weapon.damage = 5; 
-//             display_weapon_menu(player);
-//             break;   
-//         } 
-//         else if ((ch == 'm'||ch == 'c'||ch == 'a'||ch == 's'||ch == 'd')  && strcmp(player->active_weapon.type, "none")!=0) {
-//             has_weapon=1;
-//             break;   
-//         } 
-//         else{error=1;break;
-//         }
-//     }
-//     attroff(COLOR_PAIR(5));
-//     print_map();
-//     adjust_color();
-//     if(has_weapon){update_message_window("Put down your weapon first");}
-//     else if(error ||strcmp(player->active_weapon.type, "none")==0){update_message_window("Invalid choice or weapon not available!");}
-//    //else if(strcmp(player->active_weapon.type, "none")==0) {update_message_window("You returned to the main map!");}
-//     else{ wclear(message_window);
-//     box(message_window, 0, 0);
-//     mvwprintw(message_window, 1, 1, "%s is now your weapon",player->active_weapon.type);
-//     wrefresh(message_window);}
-//     update_status_window(player);
-// }
 void display_weapon_menu(Player *player) {
     clear();
     attron(COLOR_PAIR(5)); // Use color for the menu
@@ -2366,7 +2078,6 @@ void check_hunger_and_health() {
        update_status_window(player);
     }
 
-
 }
 void generate_monsters() {
     for (int i = 0; i < 24; i++) {
@@ -2393,22 +2104,7 @@ void generate_monsters() {
         }
     }
 }
-// void place_special_items(){
-//     for(int j=0;j<24 ;j++){
-//         if(j%6!=5){
-//    rooms[j].gold_count = 0;
-//     int num_gold = (rooms[j].width*rooms[j].height<70)?1+rand() % 2:1+rand() % 4;
-//     if(j==20)num_gold=1;
-//     for (int i = 0; i < num_gold; i++) {
-//         gold new_gold;
-//             point starting_position=valid_empty_place(j/6,j%6);
-//            // if(map[level][starting_position.y][starting_position.x]!='.'){continue;}
-//            new_gold.position.x=starting_position.x;
-//             new_gold.position.y=starting_position.y; 
-//              new_gold.amount=1+rand()%5;
-//              map[j/6][new_gold.position.y][new_gold.position.x]='%';
-//         rooms[j].golds[rooms[j].gold_count++] = new_gold;
-//     } }
+
 void move_monsters(Player *player) {
     int room_id = get_current_room_id(player->positions.x, player->positions.y);
     if (room_id == -1) return;
@@ -2442,86 +2138,14 @@ void move_monsters(Player *player) {
         
     }
 }
-// void move_monsters(Player *player) {
-//     int room_id = get_current_room_id(player->positions.x, player->positions.y);
-//     if (room_id == -1) return; // Only move monsters in the same room
-//     Room *room = &rooms[(level * 6) + room_id];
-//     for (int i = 0; i < room->monster_count; i++) {
-//         monster *monster = &room->monsters[i];
-//         if (monster->health <= 0) continue;  // Skip dead monsters
-//         // Restore the tile the monster was on before moving
-//         // Decide movement based on range
-//         int dx = player->positions.x - monster->position.x;
-//         int dy = player->positions.y - monster->position.y;
-//         int distance = abs(dx) + abs(dy);
-//         if (abs(dx)==1 || abs(dy)==1) {
-//             // Attack if next to the player
-//             player->health -= monster->damage;
-//             update_message_window("A monster attacked you!");
-//             update_status_window(player);
-//             continue;
-//         } else {
-//         //if (distance <= monster->range) {
-//             // Move one step closer to the player
-//             int newx = monster->position.x;
-//             int newy = monster->position.y;
-//             if (abs(dx) > abs(dy)) {
-//                 newx += (dx > 0) ? 1 : -1;
-//             } else {
-//                 newy += (dy > 0) ? 1 : -1;
-//             }
-//             // Validate movement (monsters can move onto items but not walls)
-//             char target_tile = map[level][newy][newx];
-//             if (target_tile != '=' && target_tile != '|' && target_tile != '_' && target_tile != '+' && target_tile != '?'){
-//             // (target_tile == '.' || target_tile == '%' || target_tile == '$' || 
-//             //     target_tile == 'f' || target_tile == 'a' || target_tile == 'd' || 
-//             //     target_tile == 's' || target_tile == 'm' || target_tile == 'c') {
-//                 // Store the original tile before moving
-//                 monster->position.x = newx;
-//                 monster->position.y = newy;
-//             }
-//         }
-//     }
-// }
+
 void update_monster_range(){
 for(int i=0;i<24;i++){
     if(rooms[i].monsters[0].health>0 && rooms[i].monsters[0].current_range==0 ){
         rooms[i].monsters[0].current_range=rooms[i].monsters[0].range;}
 }
 }
-// void attack_monster(Player *player, int x, int y) {
 
-//     int room_id = get_current_room_id(x, y);
-
-//     if (room_id == -1) return;
-
-
-
-//     Room *room = &rooms[(level * 6) + room_id];
-
-//     for (int i = 0; i < room->monster_count; i++) {
-
-//         monster *monster = &room->monsters[i];
-
-//         if (monster->position.x == x && monster->position.y == y) {
-
-//             monster->health -= player->active_weapon.damage;
-
-//             if (monster->health <= 0) {
-
-//                 update_message_window("You killed a monster!");
-
-//                 map[level][monster->position.y][monster->position.x] = '.';
-
-//             }
-
-//             return;
-
-//         }
-
-//     }
-
-// }
 void attack_monster(Player * player){
 if(strcmp(player->active_weapon.type,"none")==0)update_message_window("No active weapon!");
 else{
@@ -2621,20 +2245,20 @@ int ch = getch();  // Get direction input
     if(strcmp(player->active_weapon.type,"arrow")==0){map[level][y][x]='A';}
      else if(strcmp(player->active_weapon.type,"magic_wound")==0){map[level][y][x]='M';}
        else if(strcmp(player->active_weapon.type,"dagger")==0){map[level][y][x]='D';} 
-      
   
     update_message_window("Your shot fell to the ground.");
-
 
 }
 }
 }
 void set_difficulty(){
+    attron(COLOR_PAIR(4));
     printw("default:easy\n");
      printw("1.Easy\n");
       printw("2.Average\n");
        printw("3.Hard\n");
         printw("Enter your choice: ");
+        attroff(COLOR_PAIR(4));
          int choice;
          scanw("%d", &choice);
          switch (choice)
@@ -2653,6 +2277,7 @@ void set_difficulty(){
          }
 }
 void set_charcter_color(){
+     attron(COLOR_PAIR(7));
     printw("default:GREEN\n");
      printw("1.GREEN\n");
       printw("2.CYAN\n");
@@ -2662,75 +2287,25 @@ void set_charcter_color(){
        printw("6.BLUE\n");
        printw("7.MAGNETA\n");
         printw("Enter your choice: ");
+         attroff(COLOR_PAIR(7));
          int choice;
          scanw("%d", &choice);
          switch (choice)
          {
-         case 1:
-            init_pair(1,COLOR_GREEN,COLOR_BLACK);
-            break;
-         case 2:
-            init_pair(1,COLOR_CYAN,COLOR_BLACK);
-            break;
-            case 3:
-            init_pair(1,COLOR_RED,COLOR_BLACK);
-            break;
-            case 4:
-            init_pair(1,COLOR_YELLOW,COLOR_BLACK);
-            break;
-            case 5:
-            init_pair(1,COLOR_WHITE,COLOR_BLACK);
-            break;
-            case 6:
-            init_pair(1,COLOR_BLUE,COLOR_BLACK);
-            break;
-            case 7:
-            init_pair(1,COLOR_MAGENTA,COLOR_BLACK);
-            break;
-         default:
-            break;
+         case 1:init_pair(1,COLOR_GREEN,COLOR_BLACK);break;
+         case 2:init_pair(1,COLOR_CYAN,COLOR_BLACK); break;
+         case 3:init_pair(1,COLOR_RED,COLOR_BLACK);break;
+         case 4:init_pair(1,COLOR_YELLOW,COLOR_BLACK);break;
+         case 5:init_pair(1,COLOR_WHITE,COLOR_BLACK);break;
+         case 6:init_pair(1,COLOR_BLUE,COLOR_BLACK);break;
+         case 7:init_pair(1,COLOR_MAGENTA,COLOR_BLACK);break;
+         default: break;
          }
 }
 int compare_scores(const void *a, const void *b) {
     return ((User*)b)->total_scores - ((User*)a)->total_scores;
 }
 
-
-
-// void display_scoreboard() {
-//     clear();
-
-//     printw("=== Scoreboard ===\n");
-
-//     qsort(users, user_count, sizeof(User), compare_scores);
-//     time_t current_time = time(NULL);  // Get current time
-//     printw("Rank | Username | Total Scores | Total Gold | Completed Games | Experience (seconds)\n");
-//     printw("------------------------------------------------------------------------------------\n");
-     
-//     for (int i = 0; i < user_count; i++) {
-
-//         double experience = (users[i].first_game_time!=0)?difftime(current_time, users[i].first_game_time):0;  // Calculate experience
-//         if(guest==0 && strcmp(users[i].username,current_username)==0){attron(A_BOLD);}
-//         if(i==0){attron(COLOR_PAIR(4));attron(A_UNDERLINE);}
-//         if(i==1){attron(COLOR_PAIR(5));attron(A_UNDERLINE);}
-//         if(i==2){attron(COLOR_PAIR(9));attron(A_UNDERLINE);}
-//         printw("%d    | %-8s | %-12d | %-10d | %-15d | %-20.0f", 
-//                 i + 1, 
-//                 users[i].username, 
-//                 users[i].total_scores, 
-//                 users[i].total_gold, 
-//                 users[i].completed_game, 
-//                 experience); 
-//                 if(i==0) {printw("CHAMPION  ");printw("\U0001F947");attroff(COLOR_PAIR(4));attroff(A_UNDERLINE);}
-//                 if(i==1) {printw("RUNNER-UP ");printw("\U0001F948");attroff(COLOR_PAIR(5));attroff(A_UNDERLINE);}
-//                 if(i==2) {printw("STRIVER   ");printw("\U0001F949");attroff(COLOR_PAIR(9));attroff(A_UNDERLINE);}
-//                 printw("\n");
-//      if(guest==0 && strcmp(users[i].username,current_username)==0){attroff(A_BOLD);}
-
-//     }
-     
-// getch();
-// }
 void save_game() {
     char filename[256];
     snprintf(filename, sizeof(filename), "%s_game.dat", current_username);  // Generate file name with username
@@ -2779,67 +2354,34 @@ void load_game() {
     fclose(file);  // Close the file
 }
 void play_song(const char *song) {
-
-    // Stop any previously playing music
-
     system("pkill mpg123");
-
-
-
-    // Play the new song and suppress terminal output
-
     char command[256];
-
-    snprintf(command, sizeof(command), "mpg123 %s > /dev/null 2>&1 &", song);  // Redirect stdout and stderr to /dev/null
-
+    snprintf(command, sizeof(command), "mpg123 %s > /dev/null 2>&1 &", song);  
     system(command);
-
 }
 
-
-
-void stop_song() {
-    system("pkill mpg123");
-}
-
-
+void stop_song() { system("pkill mpg123");}
 
 void song_menu() {
-    int num_songs = 3;  // Only 3 songs available
+    int num_songs = 3;  
     int ch;
-        clear();  // Clear the screen
-        // Display menu
+        clear();  
+        attron(COLOR_PAIR(6));
         mvprintw(0, 0, "Select a song to play (or press space to stop):");
         for (int i = 0; i < num_songs; i++) {
             mvprintw(i + 1, 0, "%d. %s", i + 1, songs[i]);
         }
         mvprintw(5, 0, "Enter your choice:");
-        refresh();  // Update the screen
-        ch = getch();  // Get user input
+        attroff(COLOR_PAIR(6));
+        refresh();  
+        ch = getch();  
         switch (ch) {
-            case ' ':  // Stop song
-                stop_song();
-                song_choice = 0;  // Reset choice to 0 to indicate no song
-                break;
-            case '1':  // Play song 1
-               // play_song(songs[0]);
-                song_choice = 1;
-                break;
-            case '2':  // Play song 2
-               // play_song(songs[1]);
-                song_choice = 2;
-                break;
-            case '3':  // Play song 3
-               // play_song(songs[2]);
-                song_choice = 3;
-                break;
-            // case 'q':  // Quit the program
-            //     stop_song();  // Stop any music before exiting
-            //     endwin();  // Close ncurses
-            //     return;
+            case ' ':  stop_song();song_choice = 0;  break;
+            case '1':   song_choice = 1;break;
+            case '2':  song_choice = 2; break;
+            case '3':  song_choice = 3; break;
+           
         }
-
-  //  }
 getch();
 }
 
