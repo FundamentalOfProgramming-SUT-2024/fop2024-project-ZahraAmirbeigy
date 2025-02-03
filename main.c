@@ -508,20 +508,20 @@ void start_new_game() {
     if(win==1){
         if(guest==0){ current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;}
        
-        mvprintw(0,0,"You won!\nScore:%d\n",score);
+        mvprintw(0,0,"You won!\nGold:%d\nScore:%d\n",player->gold,score);
         draw_from_file("trophy.txt");}
     else if((player->health<=0)){mvprintw(0,0,"You lost!\n");
     draw_from_file("skull.txt");
     if(guest==0){ current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;}
        }
-    else{mvprintw(0,0,"You quited the game!\nScore:%d\n",score);
+    else{mvprintw(0,0,"You quited the game!\nGold:%d\nScore:%d\n",player->gold,score);
     draw_from_file("dragon.txt");
     if(guest==0) save_game();
       
     }
    // getch();
     endwin();
-
+     echo();
 }
 void continue_previous_game() {
     if(guest==1)return;
@@ -564,16 +564,19 @@ void continue_previous_game() {
     if(win==1){
         current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;
        
-        mvprintw(0,0,"You won!\nScore:%d\n",score);}
+        mvprintw(0,0,"You won!\nGold:%d\nScore:%d\n",player->gold,score);
+        draw_from_file("trophy.txt");}
     else if((player->health<=0)){mvprintw(0,0,"You lost\n!");
+    draw_from_file("skull.txt");
      current_user->completed_game++;current_user->total_scores+=score;current_user->total_gold+=player->gold;
        }
-    else{mvprintw(0,0,"You quited the game!\nScore:%d\n",score);
+    else{mvprintw(0,0,"You quited the game!\nGold:%d\nScore:%d\n",player->gold,score);
+    draw_from_file("dragon.txt");
     save_game();
     }
    // getch();
     endwin();    
-
+    echo();
 
 }
 
@@ -935,6 +938,11 @@ if(rooms[j].width*rooms[j].height>70){
       map[j/6][newweapon.position.y][newweapon.position.x]='s';
      rooms[j].weapons[i] = newweapon;
       break;
+      //   case 4:strcpy(newweapon.type,"mace");
+    //    newweapon.damage=5;
+    //   map[j/6][newweapon.position.y][newweapon.position.x]='c';
+    //  rooms[j].weapons[i] = newweapon;
+    //   break;
       }
      }
 
@@ -2336,7 +2344,7 @@ void check_hunger_and_health() {
    
     if (difftime(current_time, last_update_time) >= 10) {
         last_update_time = current_time;  // Update the last time the hunger check occurred
-        // Now update hunger and healt
+        // Now update hunger and health
         player->hunger += 10;
          if ( player->hunger <= 20) {
         player->health += 10;
