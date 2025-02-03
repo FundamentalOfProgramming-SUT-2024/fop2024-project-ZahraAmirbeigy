@@ -221,6 +221,8 @@ void move_monsters(Player *player);
 int monster_exist(int x, int y);
 void update_monster_range();
 void attack_monster(Player * player);
+
+void update_map();
 ////////////////////////////////////////////////////////
 int main(){
     setlocale(LC_ALL,"");
@@ -742,7 +744,7 @@ void generate_doors(Room *room) {
 }
 void generate_obstacles(Room *room) {
     room->obstacle_count = 0;
-    int num_obstacle = rand() % 4;
+    int num_obstacle = (room->height*room->width>80)?rand() % 4:rand()%3;
     for (int i = 0; i < num_obstacle; i++) {
         point new_obstacle;
        
@@ -796,7 +798,7 @@ point valid_empty_place(int leve,int room_index){
 void generate_traps(){
     for(int j=0;j<24;j++){
    rooms[j].trap_count = 0;
-    int num_trap = (rooms[j].width*rooms[j].height<80)?1+rand()%2:2+rand() % 6;
+    int num_trap = (rooms[j].width*rooms[j].height<82)?1+rand()%2:2+rand() % 6;
     if(j==20)num_trap=12;
     for (int i = 0; i < num_trap; i++) {
         Trap new_trap;
@@ -844,7 +846,7 @@ void place_special_items(){
              rooms[j].golds[rooms[j].gold_count++] = new_gold;
     } 
     if(j%6!=5){
-    rooms[j].food_count=(rooms[j].width*rooms[j].height<64)?rand()%2:1+rand()%2;
+    rooms[j].food_count=(rooms[j].width*rooms[j].height<70)?rand()%2:1+rand()%2;
     for(int i=0;i<rooms[j].food_count;i++){
     food newfood;
     newfood.position=valid_empty_place(j/6,j%6);
@@ -876,7 +878,7 @@ void place_special_items(){
     if(j==20)continue;
 if(rooms[j].width*rooms[j].height>70){
     
-     if(j%6==4 || j%6==1){rooms[j].spell_count=(rooms[j].width*rooms[j].height<70)?1+rand()%2:3+rand()%4;}
+     if(j%6==4 || j%6==1){rooms[j].spell_count=(rooms[j].width*rooms[j].height<75)?1+rand()%2:3+rand()%4;}
      else {rooms[j].spell_count=(rooms[j].width*rooms[j].height<70)?rand()%2:1+rand()%3;}
      for(int i=0;i<rooms[j].spell_count;i++){
         spell newspell;
@@ -901,7 +903,7 @@ if(rooms[j].width*rooms[j].height>70){
      }
    }
      
-if(rooms[j].width*rooms[j].height>70){
+if(rooms[j].width*rooms[j].height>74){
     rooms[j].weapon_count=1+rand()%3;
      for(int i=0;i<rooms[j].weapon_count;i++){
         Weapon newweapon;
@@ -2228,16 +2230,20 @@ int ch = getch();  // Get direction input
                              player->gold+=r->monsters[j].damage;
                              r->monster_count--;
                               update_message_window("You killed a monster!");
-                             adjust_color();
-                             attron(COLOR_PAIR(1));
-                               mvprintw(player->positions.y,player->positions.x,"@");    
-                             attroff(COLOR_PAIR(1)); 
+                             update_map();
                              update_status_window(player);
                     }
                     return;
                 }
             }
         }
+        char temp= map[level][y-dy][x-dx];
+       char temp2= map[level][y][x];
+           if(strcmp(player->active_weapon.type,"arrow")==0){ map[level][y-dy][x-dx]=temp;map[level][y][x]='A';update_map();refresh();usleep(1000000);map[level][y][x]=temp2; }
+           else if(strcmp(player->active_weapon.type,"magic_wound")==0){map[level][y-dy][x-dx]=temp;map[level][y][x]='M';update_map();refresh();usleep(1000000);map[level][y][x]=temp2;}
+           else if(strcmp(player->active_weapon.type,"dagger")==0){map[level][y-dy][x-dx]=temp;map[level][y][x]='D';update_map();refresh();usleep(1000000);map[level][y][x]=temp2;} 
+      
+
     }
 
 
@@ -2474,3 +2480,9 @@ void draw_from_file(const char *filename) {
     fclose(file); 
 }
 
+void update_map(){
+adjust_color();
+attron(COLOR_PAIR(1));
+ mvprintw(player->positions.y,player->positions.x,"@");    
+ attroff(COLOR_PAIR(1));
+}
