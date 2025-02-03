@@ -133,6 +133,7 @@ point stair[4];
 WINDOW *message_window;
 WINDOW *status_window;
 time_t last_update_time;
+time_t last_update_time2;
 
 int song_choice = 1;
 const char *songs[3] = {  
@@ -223,6 +224,7 @@ void update_monster_range();
 void attack_monster(Player * player);
 
 void update_map();
+void change_food();
 ////////////////////////////////////////////////////////
 int main(){
     setlocale(LC_ALL,"");
@@ -473,6 +475,7 @@ void start_new_game() {
         break;}
     }}
      last_update_time=time(NULL);
+     last_update_time2=time(NULL);
      getmaxyx(stdscr, max_y, max_x);
       max_y-=3;max_x-=2;
       set_up_screen_message();
@@ -499,7 +502,7 @@ void start_new_game() {
          handle_input(ch,player);
          if((win==1)||(player->health<=0)){break;}
          check_hunger_and_health();
-
+         change_food();
         }
         if (song_choice != 0) {
         stop_song();} 
@@ -2485,4 +2488,26 @@ adjust_color();
 attron(COLOR_PAIR(1));
  mvprintw(player->positions.y,player->positions.x,"@");    
  attroff(COLOR_PAIR(1));
+}
+void change_food(){
+
+time_t current_time = time(NULL);
+    // Check if 5 seconds have passed
+   
+    if (difftime(current_time, last_update_time2) >= 90) {
+        last_update_time2 = current_time;  // Update the last time the hunger check occurred
+        
+        for(int i=0;i<24;i++){
+            Room *r = &rooms[i];
+            for (int j = 0; j < r->food_count; j++) {
+        if(strcmp(r->foods[j].type,"normal")==0){strcpy(r->foods[j].type,"bad");}
+        if(strcmp(r->foods[j].type,"gourmet")==0 || strcmp(r->foods[j].type,"magic")==0){
+            strcpy(r->foods[j].type,"normal");
+            map[i/6][r->foods[j].position.y][r->foods[j].position.x]='f';
+            }
+        }
+        }
+     update_map();
+    }
+
 }
