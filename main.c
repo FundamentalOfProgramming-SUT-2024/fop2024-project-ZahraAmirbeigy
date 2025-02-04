@@ -1987,7 +1987,7 @@ void display_weapon_menu(Player *player) {
     menu_line++;
     // Close-range weapons
     mvprintw(menu_line++, 2, "close_range weapons:");
-    mvprintw(menu_line++, 2, "s) Sword (Count: 1, Damage: 10)");
+    mvprintw(menu_line++, 2, "s) Sword (Count: %d, Damage: 10)", player->sword_count);
     mvprintw(menu_line++, 2, "c) Mace (Count: %d, Damage: 5)", player->Mace_count);
     mvprintw(menu_line + 1, 0, "Press 'w' to put down your weapon, or 'q' to return.");
     refresh();
